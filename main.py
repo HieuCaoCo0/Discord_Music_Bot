@@ -10,8 +10,8 @@ from collections import deque
 
 load_dotenv()
 
+# TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID"))
 TOKEN = os.getenv("TOKEN")
-TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID"))
 FFMPEG_PATH = os.getenv("FFMPEG_PATH")
 # print(f"FFMPEG_PATH: {FFMPEG_PATH}")
 
@@ -49,16 +49,16 @@ async def play_next_song(voice_client, guild_id, channel):
         voice_client.play(source, after = after_playing)
         asyncio.create_task(channel.send(f"Now playing: {title}"))
     else:
-        await channel.send("The queue is empty. Add more songs to play.")
+        # await channel.send("The queue is empty. Add more songs to play.")
         await voice_client.disconnect()
         del SONG_QUEUES[guild_id]
 
 @bot.event
 async def on_ready():
-    test_guild = discord.Object(id=TEST_GUILD_ID)
-    sync = await bot.tree.sync(guild=test_guild)
-    # bot.clear_commands(guild=Nome)
-    # sync = await bot.tree.sync()
+    # test_guild = discord.Object(id=TEST_GUILD_ID)
+    # sync = await bot.tree.sync(guild=test_guild)
+    # bot.tree.clear_commands(guild=None)
+    sync = await bot.tree.sync()
     print(f'Synced {len(sync)} commands.')
     print([cmd.name for cmd in bot.tree.get_commands()])
     print(f'{bot.user} has connected to Discord!')
