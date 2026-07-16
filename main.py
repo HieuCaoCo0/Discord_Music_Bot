@@ -59,8 +59,8 @@ async def on_ready():
     # sync = await bot.tree.sync(guild=test_guild)
     # bot.tree.clear_commands(guild=None)
     sync = await bot.tree.sync()
-    print(f'Synced {len(sync)} commands.')
-    print([cmd.name for cmd in bot.tree.get_commands()])
+    # print(f'Synced {len(sync)} commands.')
+    # print([cmd.name for cmd in bot.tree.get_commands()])
     print(f'{bot.user} has connected to Discord!')
     
 
