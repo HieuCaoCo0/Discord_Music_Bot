@@ -11,7 +11,7 @@ from collections import deque
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-GUILD_ID = int(os.getenv("GUILD_ID"))
+TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID"))
 FFMPEG_PATH = os.getenv("FFMPEG_PATH")
 # print(f"FFMPEG_PATH: {FFMPEG_PATH}")
 
@@ -55,8 +55,12 @@ async def play_next_song(voice_client, guild_id, channel):
 
 @bot.event
 async def on_ready():
-    test_guild = discord.Object(id=GUILD_ID)
-    await bot.tree.sync(guild=test_guild)
+    test_guild = discord.Object(id=TEST_GUILD_ID)
+    sync = await bot.tree.sync(guild=test_guild)
+    # bot.clear_commands(guild=Nome)
+    # sync = await bot.tree.sync()
+    print(f'Synced {len(sync)} commands.')
+    print([cmd.name for cmd in bot.tree.get_commands()])
     print(f'{bot.user} has connected to Discord!')
     
 
@@ -112,16 +116,59 @@ async def play(interaction: discord.Interaction, song_query: str):
         await interaction.followup.send(f"Now playing: {title}")
         await play_next_song(voice_client, guild_id, interaction.channel)
 
+@bot.tree.command(name='pause', description='Pause the current song')
+async def pause(interaction: discord.Interaction):
+    voice_client = interaction.guild.voice_client
+    # Check if the bot is connected to a voice channel and if a song is currently playing
+    if voice_client is None:
+        return await interaction.response.send_message("I am not connected to a voice channel.")
+    if not voice_client.is_playing():
+        return await interaction.response.send_message("No song is currently playing.")
+    
+    voice_client.pause()
+    await interaction.response.send_message("Paused the current song.")
+
+@bot.tree.command(name='resume', description='Resume the current song')
+async def resume(interaction: discord.Interaction):
+    voice_client = interaction.guild.voice_client
+    # Check if the bot is connected to a voice channel and if a song is currently paused
+    if voice_client is None:
+        return await interaction.response.send_message("I am not connected to a voice channel.")
+    if not voice_client.is_paused():
+        return await interaction.response.send_message("No song is currently paused.")
+    
+    voice_client.resume()
+    await interaction.response.send_message("Resumed the current song.")
+
 @bot.tree.command(name="skip", description="Skip the current song")
 async def skip(interaction: discord.Interaction):
-    if interaction.guild.voice_client and (interaction.guild.voice_client.is_playing() or interaction.guild.voice_client.is_paused()): 
-        interaction.guild.voice_client.stop()
-        await interaction.response.send_message("Skipped the current song.")
-    else:
-        await interaction.response.send_message('No song is currently playing.')
+    voice_client = interaction.guild.voice_client
+    # Check if the bot is connected to a voice channel and if a song is currently playing
+    if voice_client is None:
+        return await interaction.response.send_message("I am not connected to a voice channel.")
+    if not voice_client.is_playing() and not voice_client.is_paused():
+        return await interaction.response.send_message("No song is currently playing.")
+
+    voice_client.stop()
+    await interaction.response.send_message("Skipped the current song.")
+
+@bot.tree.command(name="stop", description="Stop the music and clear the queue")
+async def stop(interaction: discord.Interaction):
+    await interaction.response.defer()
+    voice_client = interaction.guild.voice_client
+    # Check if the bot is connected to a voice channel
+    if voice_client is None:
+        return await interaction.followup.send("I am not connected to a voice channel.")
+
+    # Clear the song queue for the guild
+    guild_id = str(interaction.guild.id)
+    if guild_id in SONG_QUEUES:
+        SONG_QUEUES[guild_id].clear()
+
+    voice_client.stop()
+    await interaction.followup.send("Stopped the music and disconnected!")
+    await voice_client.disconnect()
     
-
-
 
 
 bot.run(TOKEN)
