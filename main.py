@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
-from pathlib import Path
+# from pathlib import Path
 import yt_dlp
 import asyncio
 from collections import deque
