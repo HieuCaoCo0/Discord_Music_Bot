@@ -11,8 +11,9 @@ from collections import deque
 load_dotenv()
 
 # TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID"))
+# GUILD_ECH = os.getenv("GUILD_ECH")
 TOKEN = os.getenv("TOKEN")
-FFMPEG_PATH = os.getenv("FFMPEG_PATH")
+# FFMPEG_PATH = os.getenv("FFMPEG_PATH")
 # print(f"FFMPEG_PATH: {FFMPEG_PATH}")
 
 intents = discord.Intents.default()
@@ -38,7 +39,7 @@ async def play_next_song(voice_client, guild_id, channel):
             "options": "-vn",
         }
 
-        source = discord.FFmpegOpusAudio(audio_url, **ffmpeg_options, executable = FFMPEG_PATH)
+        source = discord.FFmpegOpusAudio(audio_url, **ffmpeg_options, executable = "ffmpeg")
 
         def after_playing(error):
             if error:
@@ -55,13 +56,16 @@ async def play_next_song(voice_client, guild_id, channel):
 
 @bot.event
 async def on_ready():
-    # test_guild = discord.Object(id=TEST_GUILD_ID)
+    # test_guild = discord.Object(id=TEST_GUILnD_ID)
     # sync = await bot.tree.sync(guild=test_guild)
+    # guild_ech = discord.Object(id=GUILD_ECH)
+    # sync = await bot.tree.sync(guild=guild_ech)
     # bot.tree.clear_commands(guild=None)
     sync = await bot.tree.sync()
     # print(f'Synced {len(sync)} commands.')
     # print([cmd.name for cmd in bot.tree.get_commands()])
     print(f'{bot.user} has connected to Discord!')
+    print(f'guilds: {[guild.id for guild in bot.guilds]}')
     
 
 @bot.tree.command(name="play", description="Play a song or add to the queue")
