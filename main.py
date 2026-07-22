@@ -1,25 +1,15 @@
-import os
 import discord
 from discord.ext import commands
 from discord import app_commands
-from dotenv import load_dotenv
-# from pathlib import Path
 import yt_dlp
 import asyncio
 from collections import deque
-
-load_dotenv()
-
-# TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID"))
-# GUILD_ECH = os.getenv("GUILD_ECH")
-TOKEN = os.getenv("TOKEN")
-# FFMPEG_PATH = os.getenv("FFMPEG_PATH")
-# print(f"FFMPEG_PATH: {FFMPEG_PATH}")
+from config.setting import TOKEN, FFMPEG_PATH, FFMPEG_OPTIONS, YDL_OPTIONS, BOT_PREFIX
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix = '!', intents = intents)
+bot = commands.Bot(command_prefix = BOT_PREFIX, intents = intents)
 
 SONG_QUEUES = {}
 
@@ -33,13 +23,9 @@ def _extract(query, ydl_opt):
 async def play_next_song(voice_client, guild_id, channel):
     if guild_id in SONG_QUEUES and SONG_QUEUES[guild_id]:
         audio_url, title = SONG_QUEUES[guild_id].popleft()
-        ffmpeg_options = {
-            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-            # 'options': '-vn -c:a libopus -b:a 96k', 
-            "options": "-vn",
-        }
+        ffmpeg_options = FFMPEG_OPTIONS.copy()
 
-        source = discord.FFmpegOpusAudio(audio_url, **ffmpeg_options, executable = "ffmpeg")
+        source = discord.FFmpegOpusAudio(audio_url, **ffmpeg_options, executable = FFMPEG_PATH)
 
         def after_playing(error):
             if error:
@@ -56,14 +42,7 @@ async def play_next_song(voice_client, guild_id, channel):
 
 @bot.event
 async def on_ready():
-    # test_guild = discord.Object(id=TEST_GUILnD_ID)
-    # sync = await bot.tree.sync(guild=test_guild)
-    # guild_ech = discord.Object(id=GUILD_ECH)
-    # sync = await bot.tree.sync(guild=guild_ech)
-    # bot.tree.clear_commands(guild=None)
     sync = await bot.tree.sync()
-    # print(f'Synced {len(sync)} commands.')
-    # print([cmd.name for cmd in bot.tree.get_commands()])
     print(f'{bot.user} has connected to Discord!')
     print(f'guilds: {[guild.id for guild in bot.guilds]}')
     
@@ -86,12 +65,7 @@ async def play(interaction: discord.Interaction, song_query: str):
     elif voice_client.channel != voice_channel:
         await voice_client.move_to(voice_channel)
 
-    ydl_options = {
-        'format': 'bestaudio[abr<96]/best',
-        'noplaylist': True,
-        'youtube_include_dash_manifest': False,
-        'youtube_include_hls_manifest': False,
-    }
+    ydl_options = YDL_OPTIONS.copy()
 
     query = 'ytsearch1: ' + song_query
     result = await search_ytdlp_async(query, ydl_options)
